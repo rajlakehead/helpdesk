@@ -1,37 +1,42 @@
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { notFound } from "next/navigation";
 import React from "react";
+import { cookies } from 'next/headers'
+import DeleteIcon from "./DeleteIcon";
+
 
 export const dynamicParams = true;
-export async function generateStaticParams() {
-  const res = await fetch("http://localhost:4000/tickets");
 
-  const tickets = await res.json();
-
-  return tickets.map((ticket) => ({
-    id: ticket.id,
-  }));
-}
 async function getTicket(id) {
-  //imitate delay
-  //await new Promise(resolve => setTimeout(resolve, 3000))
+  
+  const subpabase = createServerComponentClient({cookies})
 
-  const res = await fetch("http://localhost:4000/tickets/" + id, {
-    next: {
-      revalidate: 60,
-    },
-  });
-  if (!res.ok) {
+  const {data} = await subpabase.from('Tickets')
+  .select()
+  .eq('id', id)
+  .single()
+
+  if (!data) {
     notFound();
   }
-  return res.json();
+  return data;
 }
 
 export default async function TicketDetails({ params }) {
   const ticket = await getTicket(params.id);
+
+  const supabase = createServerComponentClient({ cookies })
+  const { data } = await supabase.auth.getSession()
+
   return (
     <main>
       <nav>
         <h2>Ticket Details</h2>
+        <div className="ml-auto">
+          {data.session.user.email === ticket.user_email && (
+            <DeleteIcon id={ticket.id} />
+          )}
+          </div>
       </nav>
       <div className="card">
         <h3>{ticket.title}</h3>
