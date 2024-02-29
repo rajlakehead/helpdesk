@@ -16,7 +16,7 @@ export default function Signup() {
       email,
       password,
       options:{
-        emailRedirectTo: `${location.origin}/api/auth/callback`
+        emailRedirectTo: `https://helpdesk-hazel.vercel.app/api/auth/callback`
       }
     })
 
